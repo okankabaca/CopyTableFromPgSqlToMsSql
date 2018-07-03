@@ -53,6 +53,7 @@ uId={SqluserID};Integrated Security=True";
             command.CommandText = sqlQuery;
             command.ExecuteNonQuery();
             command.Dispose();
+            connection.Close();
             connection.Dispose();
         }
 
@@ -66,27 +67,39 @@ uId={SqluserID};Integrated Security=True";
                 sqlQuery += " " + dataGridView.Rows[(i - 1)].Cells[1].Value.ToString() + " ,";
             }
 
+            sqlQuery +=")";
+            MessageBox.Show(sqlQuery);
             return sqlQuery;
         }
 
         private void btnBackup_Click(object sender, EventArgs e)
         {
             var connectionString = getNpgsqlConnectionString();
-            NpgsqlConnection connection = new NpgsqlConnection(connectionString);
-            connection.Open();
-            NpgsqlCommand command = new NpgsqlCommand();
-            command.CommandText= @"SELECT column_name,data_type 
+
+
+            using (NpgsqlConnection connection = new NpgsqlConnection(connectionString))
+            using (NpgsqlCommand command = new NpgsqlCommand())
+            {
+                connection.Open();
+
+                command.CommandText = @"SELECT column_name,data_type 
                                 FROM INFORMATION_SCHEMA.COLUMNS 
                                 WHERE TABLE_NAME = 'tableSource'";
-            //command.CommandText = "SELECT *FROM Public.\"tableSource\"";
-            command.Connection = connection;
-            NpgsqlDataAdapter dataAdapter = new NpgsqlDataAdapter(command);
-            DataTable dt = new DataTable();
-            dataAdapter.Fill(dt);
-            dataGridView.DataSource = dt;
-            command.Dispose();
-            connection.Dispose();
+                //command.CommandText = "SELECT *FROM Public.\"tableSource\"";
+                command.Connection = connection;
+                NpgsqlDataAdapter dataAdapter = new NpgsqlDataAdapter(command);
+                DataTable dt = new DataTable();
+                dataAdapter.Fill(dt);
+                dataGridView.DataSource = dt;
+            }
 
+           
+
+            String sqlConnectionString = getSqlConnectionString("GEBZEHAVUZ17","dbStaj", 
+                @"LOGOMERKEZ\Okan.Kabaca");
+            String sqlQuery = getSqlQuery(dataGridView, "dbYeni");
+
+            createSqlTable(sqlConnectionString,sqlQuery);
            
 
             //MessageBox.Show(dataGridView.Rows.Count.ToString()); //count of column
