@@ -26,6 +26,7 @@ namespace CopyTableFromPgSqlToMsSql
 
         }
 
+
         public String getNpgsqlConnectionString(String npgSqlServer, String npgSqlPort, String npgSqlDb, String npgSqlUserId, String npgSqlPassword)
         {
             var connectionString = $@"Server={npgSqlServer};
@@ -38,6 +39,7 @@ namespace CopyTableFromPgSqlToMsSql
             return connectionString;
         }
 
+
         public String getSqlConnectionString(String sqlServer, String sqlDb, String sqluserID)
         {
             var connectionString = $@"SERVER={sqlServer};
@@ -47,6 +49,7 @@ namespace CopyTableFromPgSqlToMsSql
 
             return connectionString;
         }
+
 
         public void createSqlTable(String sqlConnectionString, String sqlQuery)
         {
@@ -59,6 +62,7 @@ namespace CopyTableFromPgSqlToMsSql
                 command.ExecuteNonQuery();
             }
         }
+
 
         public String getCreateTableSqlQuery(DataGridView dataGridView, String targetTable)
         {
@@ -76,6 +80,7 @@ namespace CopyTableFromPgSqlToMsSql
             //MessageBox.Show(sqlQuery);
             return sqlQuery;
         }
+
 
         public String getInsertIntoTableSqlQuery(String connectionString, String npgSqlTable, String msSqlTable)
         {
@@ -100,15 +105,16 @@ namespace CopyTableFromPgSqlToMsSql
                     {
                         for (int i = 1; i < columnNumber; i++)
                         {
-                            commandSqlInsertQuery.Append("," + dataReader[i]);
+                            commandSqlInsertQuery.Append(",'" + dataReader[i] + "'");
                         }
                     }
-                    commandSqlInsertQuery.Append(") ");
-
+                    commandSqlInsertQuery.Append("); ");
                 }
             }
+
             return commandSqlInsertQuery.ToString();
         }
+
 
         public void copyAllData(String sqlConnectionString, String insertIntoSqlQuery)
         {
@@ -119,9 +125,10 @@ namespace CopyTableFromPgSqlToMsSql
                 command.Connection = connection;
                 command.CommandText = insertIntoSqlQuery;
                 command.ExecuteNonQuery();
-                MessageBox.Show("başarılı");
+                MessageBox.Show("Kopyalama başarılı.");
             }
         }
+
 
         private void btnBackup_Click(object sender, EventArgs e)
         {
@@ -162,8 +169,11 @@ namespace CopyTableFromPgSqlToMsSql
             String sqlQuery =
                 getCreateTableSqlQuery(dataGridView, $@"{msSqlTable}");
 
-           // createSqlTable(sqlConnectionString, sqlQuery);
-            String insertIntoSqlQuery = getInsertIntoTableSqlQuery(connectionString, npgSqlTable, msSqlTable);
+            createSqlTable(sqlConnectionString, sqlQuery);
+
+            String insertIntoSqlQuery = 
+                getInsertIntoTableSqlQuery(connectionString, npgSqlTable, msSqlTable);
+
             copyAllData(sqlConnectionString, insertIntoSqlQuery);
 
             //(dataGridView.Rows.Count.ToString()); //count of column
