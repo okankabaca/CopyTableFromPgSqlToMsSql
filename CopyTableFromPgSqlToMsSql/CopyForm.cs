@@ -85,7 +85,6 @@ namespace CopyTableFromPgSqlToMsSql
         public String getInsertIntoTableSqlQuery(String connectionString, String npgSqlTable, String msSqlTable)
         {
             int columnNumber = (dataGridView.Rows.Count) - 1;
-            NpgsqlDataReader dataReader;
             StringBuilder commandSqlInsertQuery = new StringBuilder();
 
             using (NpgsqlConnection connection = new NpgsqlConnection(connectionString))
@@ -96,22 +95,25 @@ namespace CopyTableFromPgSqlToMsSql
                 command.CommandText = "Select *" +
                                        $"From public.\"{npgSqlTable}\"";
 
-                dataReader = command.ExecuteReader();
-                while (dataReader.Read())
+                using (NpgsqlDataReader dataReader = command.ExecuteReader())
                 {
-                    commandSqlInsertQuery.Append($"INSERT INTO {msSqlTable} VALUES (");
-                    commandSqlInsertQuery.Append(dataReader[0]);
-                    if (columnNumber > 1)
+                    while (dataReader.Read())
                     {
-                        for (int i = 1; i < columnNumber; i++)
+                        commandSqlInsertQuery.Append($"INSERT INTO {msSqlTable} VALUES (");
+                        commandSqlInsertQuery.Append(dataReader[0]);
+                        if (columnNumber > 1)
                         {
-                            commandSqlInsertQuery.Append(",'" + dataReader[i] + "'");
+                            for (int i = 1; i < columnNumber; i++)
+                            {
+                                commandSqlInsertQuery.Append(",'" + dataReader[i] + "'");
+                            }
                         }
+
+                        commandSqlInsertQuery.Append("); ");
                     }
-                    commandSqlInsertQuery.Append("); ");
                 }
             }
-
+            
             return commandSqlInsertQuery.ToString();
         }
 
@@ -171,7 +173,7 @@ namespace CopyTableFromPgSqlToMsSql
 
             createSqlTable(sqlConnectionString, sqlQuery);
 
-            String insertIntoSqlQuery = 
+            String insertIntoSqlQuery =
                 getInsertIntoTableSqlQuery(connectionString, npgSqlTable, msSqlTable);
 
             copyAllData(sqlConnectionString, insertIntoSqlQuery);
