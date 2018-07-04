@@ -26,87 +26,101 @@ namespace CopyTableFromPgSqlToMsSql
 
         }
 
-        public String getNpgsqlConnectionString()
+        public String getNpgsqlConnectionString(String npgSqlServer, String npgSqlPort, String npgSqlDb, String npgSqlUserId, String npgSqlPassword)
         {
-            var connectionString = @"Server=127.0.0.1;" +
-                                   "Port=5432;" +
-                                   "Database=dbSource;" +
-                                   "User Id=postgres;" +
-                                   "Password=Logo1234;" +
-                                   "Integrated Security=true;";
-            return connectionString;
-        }
-
-        public String getSqlConnectionString(String SqlServer,String SqlDb,String SqluserID)
-        {
-            var connectionString = $@"SERVER={SqlServer};Database={SqlDb};
-uId={SqluserID};Integrated Security=True";
+            var connectionString = $@"Server={npgSqlServer};
+                                      Port={npgSqlPort};
+                                      Database={npgSqlDb};
+                                      User Id={npgSqlUserId};
+                                      Password={npgSqlPassword};
+                                      Integrated Security=true;";
 
             return connectionString;
         }
 
-        public void createSqlTable(String connectionString,String sqlQuery) {
-            SqlConnection connection = new SqlConnection(connectionString);
-            connection.Open();
-            SqlCommand command = new SqlCommand();
-            command.Connection = connection;
-            command.CommandText = sqlQuery;
-            command.ExecuteNonQuery();
-            command.Dispose();
-            connection.Close();
-            connection.Dispose();
+        public String getSqlConnectionString(String sqlServer, String sqlDb, String sqluserID)
+        {
+            var connectionString = $@"SERVER={sqlServer};
+                                   Database={sqlDb};
+                                   uId={sqluserID};
+                                   Integrated Security=True";
+
+            return connectionString;
         }
 
-        public String getSqlQuery(DataGridView dataGridView,String targetTable) {
+        public void createSqlTable(String connectionString, String sqlQuery)
+        {
+            using (SqlConnection connection = new SqlConnection(connectionString))
+            using (SqlCommand command = new SqlCommand())
+            {
+                connection.Open();
+                command.Connection = connection;
+                command.CommandText = sqlQuery;
+                command.ExecuteNonQuery();
+            }
+        }
+
+        public String getSqlQuery(DataGridView dataGridView, String targetTable)
+        {
             int columnNumber = Int32.Parse(dataGridView.Rows.Count.ToString());
-            string sqlQuery=$@"CREATE TABLE {targetTable}(";
+
+            string sqlQuery = $@"CREATE TABLE {targetTable}(";
 
             for (int i = 1; i < columnNumber; i++)
             {
-                sqlQuery += dataGridView.Rows[(i-1)].Cells[0].Value.ToString();
+                sqlQuery += dataGridView.Rows[(i - 1)].Cells[0].Value.ToString();
                 sqlQuery += " " + dataGridView.Rows[(i - 1)].Cells[1].Value.ToString() + " ,";
             }
 
-            sqlQuery +=")";
-            MessageBox.Show(sqlQuery);
+            sqlQuery += ")";
+            //MessageBox.Show(sqlQuery);
             return sqlQuery;
         }
 
         private void btnBackup_Click(object sender, EventArgs e)
         {
-            var connectionString = getNpgsqlConnectionString();
+            String npgSqlServer = txtNpgSqlServer.Text;
+            String npgSqlPort = txtNpgSqlPort.Text;
+            String npgSqlDb = txtNpgSqlDb.Text;
+            String npgSqlTable = txtNpgSqlTable.Text;
+            String npgSqlUserId = txtNpgSqlUserId.Text;
+            String npgSqlPassword = txtNpgSqlPassword.Text;
 
+            String msSqlServer = txtMsSqlServer.Text;
+            String msSqlDb = txtMsSqlDb.Text;
+            String msSqlId = txtMsSqlUserId.Text;
+            String msSqlTable = txtMsSqlTable.Text;
+
+            var connectionString =
+                getNpgsqlConnectionString(npgSqlServer, npgSqlPort, npgSqlDb, npgSqlUserId, npgSqlPassword);
 
             using (NpgsqlConnection connection = new NpgsqlConnection(connectionString))
             using (NpgsqlCommand command = new NpgsqlCommand())
             {
                 connection.Open();
-
-                command.CommandText = @"SELECT column_name,data_type 
-                                FROM INFORMATION_SCHEMA.COLUMNS 
-                                WHERE TABLE_NAME = 'tableSource'";
-                //command.CommandText = "SELECT *FROM Public.\"tableSource\"";
+                command.CommandText = $@"SELECT column_name,data_type 
+                                         FROM INFORMATION_SCHEMA.COLUMNS 
+                                         WHERE TABLE_NAME = '{npgSqlTable}'";
                 command.Connection = connection;
+
                 NpgsqlDataAdapter dataAdapter = new NpgsqlDataAdapter(command);
+
                 DataTable dt = new DataTable();
                 dataAdapter.Fill(dt);
                 dataGridView.DataSource = dt;
             }
 
-           
+            String sqlConnectionString =
+                getSqlConnectionString($@"{msSqlServer}", $@"{msSqlDb}", $@"{msSqlId}");
 
-            String sqlConnectionString = getSqlConnectionString("GEBZEHAVUZ17","dbStaj", 
-                @"LOGOMERKEZ\Okan.Kabaca");
-            String sqlQuery = getSqlQuery(dataGridView, "dbYeni");
+            String sqlQuery =
+                getSqlQuery(dataGridView, $@"{msSqlTable}");
 
-            createSqlTable(sqlConnectionString,sqlQuery);
-           
+            createSqlTable(sqlConnectionString, sqlQuery);
 
-            //MessageBox.Show(dataGridView.Rows.Count.ToString()); //count of column
-            //MessageBox.Show(dataGridView.Rows[0].Cells[0].Value.ToString()); //Name of column
-            //MessageBox.Show(dataGridView.Rows[0].Cells[1].Value.ToString()); //Type of column
-
-
+            //(dataGridView.Rows.Count.ToString()); //count of column
+            //(dataGridView.Rows[0].Cells[0].Value.ToString()); //Name of column
+            //(dataGridView.Rows[0].Cells[1].Value.ToString()); //Type of column
         }
     }
 }
