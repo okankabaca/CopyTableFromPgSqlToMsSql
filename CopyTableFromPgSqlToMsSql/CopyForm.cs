@@ -48,9 +48,9 @@ namespace CopyTableFromPgSqlToMsSql
             return connectionString;
         }
 
-        public void createSqlTable(String connectionString, String sqlQuery)
+        public void createSqlTable(String sqlConnectionString, String sqlQuery)
         {
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            using (SqlConnection connection = new SqlConnection(sqlConnectionString))
             using (SqlCommand command = new SqlCommand())
             {
                 connection.Open();
@@ -60,7 +60,7 @@ namespace CopyTableFromPgSqlToMsSql
             }
         }
 
-        public String getSqlQuery(DataGridView dataGridView, String targetTable)
+        public String getCreateTableSqlQuery(DataGridView dataGridView, String targetTable)
         {
             int columnNumber = Int32.Parse(dataGridView.Rows.Count.ToString());
 
@@ -75,6 +75,52 @@ namespace CopyTableFromPgSqlToMsSql
             sqlQuery += ")";
             //MessageBox.Show(sqlQuery);
             return sqlQuery;
+        }
+
+        public String getInsertIntoTableSqlQuery(String connectionString, String npgSqlTable, String msSqlTable)
+        {
+            int columnNumber = (dataGridView.Rows.Count) - 1;
+            NpgsqlDataReader dataReader;
+            StringBuilder commandSqlInsertQuery = new StringBuilder();
+
+            using (NpgsqlConnection connection = new NpgsqlConnection(connectionString))
+            using (NpgsqlCommand command = new NpgsqlCommand())
+            {
+                connection.Open();
+                command.Connection = connection;
+                command.CommandText = "Select *" +
+                                       $"From public.\"{npgSqlTable}\"";
+
+                dataReader = command.ExecuteReader();
+                while (dataReader.Read())
+                {
+                    commandSqlInsertQuery.Append($"INSERT INTO {msSqlTable} VALUES (");
+                    commandSqlInsertQuery.Append(dataReader[0]);
+                    if (columnNumber > 1)
+                    {
+                        for (int i = 1; i < columnNumber; i++)
+                        {
+                            commandSqlInsertQuery.Append("," + dataReader[i]);
+                        }
+                    }
+                    commandSqlInsertQuery.Append(") ");
+
+                }
+            }
+            return commandSqlInsertQuery.ToString();
+        }
+
+        public void copyAllData(String sqlConnectionString, String insertIntoSqlQuery)
+        {
+            using (SqlConnection connection = new SqlConnection(sqlConnectionString))
+            using (SqlCommand command = new SqlCommand())
+            {
+                connection.Open();
+                command.Connection = connection;
+                command.CommandText = insertIntoSqlQuery;
+                command.ExecuteNonQuery();
+                MessageBox.Show("başarılı");
+            }
         }
 
         private void btnBackup_Click(object sender, EventArgs e)
@@ -114,9 +160,11 @@ namespace CopyTableFromPgSqlToMsSql
                 getSqlConnectionString($@"{msSqlServer}", $@"{msSqlDb}", $@"{msSqlId}");
 
             String sqlQuery =
-                getSqlQuery(dataGridView, $@"{msSqlTable}");
+                getCreateTableSqlQuery(dataGridView, $@"{msSqlTable}");
 
-            createSqlTable(sqlConnectionString, sqlQuery);
+           // createSqlTable(sqlConnectionString, sqlQuery);
+            String insertIntoSqlQuery = getInsertIntoTableSqlQuery(connectionString, npgSqlTable, msSqlTable);
+            copyAllData(sqlConnectionString, insertIntoSqlQuery);
 
             //(dataGridView.Rows.Count.ToString()); //count of column
             //(dataGridView.Rows[0].Cells[0].Value.ToString()); //Name of column
