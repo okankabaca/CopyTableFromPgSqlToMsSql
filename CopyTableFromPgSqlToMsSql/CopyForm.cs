@@ -10,7 +10,8 @@ using System.Windows.Forms;
 using Npgsql;
 using System.Data.Sql;
 using System.Data.SqlClient;
-
+using System.Threading;
+using System.Diagnostics;
 namespace CopyTableFromPgSqlToMsSql
 {
     public partial class CopyForm : Form
@@ -19,6 +20,8 @@ namespace CopyTableFromPgSqlToMsSql
         {
             InitializeComponent();
         }
+
+        public int second = 0;
 
         private void CopyForm_Load(object sender, EventArgs e)
         {
@@ -113,12 +116,16 @@ namespace CopyTableFromPgSqlToMsSql
 
         public void insertIntoSqlTable(String connectionString, String sqlConnectionString, String npgSqlTableName, String msSqlTable)
         {
+            Stopwatch timer = new Stopwatch();
+            timer.Start();
+
             int columnNumber = (dataGridView.Rows.Count) - 1;
 
             using (NpgsqlConnection connection = new NpgsqlConnection(connectionString))
             using (NpgsqlCommand command = new NpgsqlCommand())
             {
                 int offSetNumber = 0;
+
 
                 connection.Open();
                 command.Connection = connection;
@@ -131,6 +138,7 @@ namespace CopyTableFromPgSqlToMsSql
 
                 while (dataReader.HasRows)
                 {
+
                     StringBuilder commandSqlInsertQuery = new StringBuilder();
 
                     while (dataReader.Read())
@@ -156,7 +164,7 @@ namespace CopyTableFromPgSqlToMsSql
                     offSetNumber += 100;                                 //Query for next 100 data
                     command.CommandText = "Select *" +
                                            $"From public.\"{npgSqlTableName}\"" +
-                                           $"LIMIT 0 OFFSET {offSetNumber}";
+                                           $"LIMIT 100 OFFSET {offSetNumber}";
 
                     dataReader.Close();
                     dataReader = command.ExecuteReader();
@@ -165,7 +173,10 @@ namespace CopyTableFromPgSqlToMsSql
                 dataReader.Close();
             }
 
-            MessageBox.Show("Kopyalama başarılı");
+            timer.Stop();
+            lblProcessTime.Text= ("Kopyalama başarılı.\n" +
+                           timer.Elapsed.TotalSeconds + 
+                           " saniye işlem zamanı");
         }
 
 
@@ -217,5 +228,7 @@ namespace CopyTableFromPgSqlToMsSql
             //(dataGridView.Rows[0].Cells[0].Value.ToString()); //Name of column
             //(dataGridView.Rows[0].Cells[1].Value.ToString()); //Type of column
         }
+
+
     }
 }

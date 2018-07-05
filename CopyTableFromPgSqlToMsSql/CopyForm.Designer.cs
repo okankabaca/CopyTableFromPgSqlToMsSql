@@ -50,7 +50,7 @@
             this.label9 = new System.Windows.Forms.Label();
             this.txtMsSqlTable = new System.Windows.Forms.TextBox();
             this.label10 = new System.Windows.Forms.Label();
-            this.lblStepCount = new System.Windows.Forms.Label();
+            this.lblProcessTime = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).BeginInit();
             this.SuspendLayout();
             // 
@@ -242,21 +242,21 @@
             this.label10.TabIndex = 20;
             this.label10.Text = "MsSQL Table";
             // 
-            // lblStepCount
+            // lblProcessTime
             // 
-            this.lblStepCount.AutoSize = true;
-            this.lblStepCount.Location = new System.Drawing.Point(344, 245);
-            this.lblStepCount.Name = "lblStepCount";
-            this.lblStepCount.Size = new System.Drawing.Size(13, 13);
-            this.lblStepCount.TabIndex = 22;
-            this.lblStepCount.Text = "0";
+            this.lblProcessTime.AutoSize = true;
+            this.lblProcessTime.Location = new System.Drawing.Point(314, 247);
+            this.lblProcessTime.Name = "lblProcessTime";
+            this.lblProcessTime.Size = new System.Drawing.Size(13, 13);
+            this.lblProcessTime.TabIndex = 22;
+            this.lblProcessTime.Text = "0";
             // 
             // CopyForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(590, 364);
-            this.Controls.Add(this.lblStepCount);
+            this.Controls.Add(this.lblProcessTime);
             this.Controls.Add(this.txtMsSqlTable);
             this.Controls.Add(this.label10);
             this.Controls.Add(this.txtMsSqlUserId);
@@ -312,7 +312,7 @@
         private System.Windows.Forms.Label label9;
         private System.Windows.Forms.TextBox txtMsSqlTable;
         private System.Windows.Forms.Label label10;
-        private System.Windows.Forms.Label lblStepCount;
+        private System.Windows.Forms.Label lblProcessTime;
     }
 }
 
