@@ -10,7 +10,6 @@ using System.Windows.Forms;
 using Npgsql;
 using System.Data.Sql;
 using System.Data.SqlClient;
-using System.Data;
 
 namespace CopyTableFromPgSqlToMsSql
 {
@@ -51,6 +50,26 @@ namespace CopyTableFromPgSqlToMsSql
         }
 
 
+        public void getTableInformations(String connectionString, String npgSqlTableName)
+        {
+            using (NpgsqlConnection connection = new NpgsqlConnection(connectionString))
+            using (NpgsqlCommand command = new NpgsqlCommand())
+            {
+                connection.Open();
+                command.CommandText = $@"SELECT column_name,data_type 
+                                         FROM INFORMATION_SCHEMA.COLUMNS 
+                                         WHERE TABLE_NAME = '{npgSqlTableName}'";
+                command.Connection = connection;
+
+                NpgsqlDataAdapter dataAdapter = new NpgsqlDataAdapter(command);
+
+                DataTable dt = new DataTable();
+                dataAdapter.Fill(dt);
+                dataGridView.DataSource = dt;
+            }
+        }
+
+
         public void createSqlTable(String sqlConnectionString, String sqlQuery)
         {
             using (SqlConnection connection = new SqlConnection(sqlConnectionString))
@@ -59,7 +78,17 @@ namespace CopyTableFromPgSqlToMsSql
                 connection.Open();
                 command.Connection = connection;
                 command.CommandText = sqlQuery;
-                command.ExecuteNonQuery();
+
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (SqlException sqlException)
+                {
+                    if (sqlException.Number == 2714)
+                        MessageBox.Show("Bu tablo zaten mevcut.");
+                }
+
             }
         }
 
@@ -82,39 +111,61 @@ namespace CopyTableFromPgSqlToMsSql
         }
 
 
-        public String getInsertIntoTableSqlQuery(String connectionString, String npgSqlTable, String msSqlTable)
+        public void insertIntoSqlTable(String connectionString, String sqlConnectionString, String npgSqlTableName, String msSqlTable)
         {
             int columnNumber = (dataGridView.Rows.Count) - 1;
-            StringBuilder commandSqlInsertQuery = new StringBuilder();
 
             using (NpgsqlConnection connection = new NpgsqlConnection(connectionString))
             using (NpgsqlCommand command = new NpgsqlCommand())
             {
+                int offSetNumber = 0;
+
                 connection.Open();
                 command.Connection = connection;
-                command.CommandText = "Select *" +
-                                       $"From public.\"{npgSqlTable}\"";
 
-                using (NpgsqlDataReader dataReader = command.ExecuteReader())
+                command.CommandText = "Select *" +
+                                       $"From public.\"{npgSqlTableName}\"" +
+                                       $"LIMIT 100 OFFSET {offSetNumber}";
+
+                NpgsqlDataReader dataReader = command.ExecuteReader();
+
+                while (dataReader.HasRows)
                 {
+                    StringBuilder commandSqlInsertQuery = new StringBuilder();
+
                     while (dataReader.Read())
                     {
-                        commandSqlInsertQuery.Append($"INSERT INTO {msSqlTable} VALUES (");
+                        commandSqlInsertQuery.Append($"INSERT INTO {msSqlTable} " +
+                                                     $"VALUES (");
                         commandSqlInsertQuery.Append(dataReader[0]);
+
                         if (columnNumber > 1)
                         {
                             for (int i = 1; i < columnNumber; i++)
                             {
                                 commandSqlInsertQuery.Append(",'" + dataReader[i] + "'");
                             }
+
                         }
 
                         commandSqlInsertQuery.Append("); ");
                     }
+
+                    copyAllData(sqlConnectionString, commandSqlInsertQuery.ToString());
+
+                    offSetNumber += 100;                                 //Query for next 100 data
+                    command.CommandText = "Select *" +
+                                           $"From public.\"{npgSqlTableName}\"" +
+                                           $"LIMIT 0 OFFSET {offSetNumber}";
+
+                    dataReader.Close();
+                    dataReader = command.ExecuteReader();
                 }
+
+                dataReader.Close();
             }
-            
-            return commandSqlInsertQuery.ToString();
+
+            MessageBox.Show("Kopyalama başarılı");
         }
 
 
@@ -127,7 +178,6 @@ namespace CopyTableFromPgSqlToMsSql
                 command.Connection = connection;
                 command.CommandText = insertIntoSqlQuery;
                 command.ExecuteNonQuery();
-                MessageBox.Show("Kopyalama başarılı.");
             }
         }
 
@@ -137,7 +187,7 @@ namespace CopyTableFromPgSqlToMsSql
             String npgSqlServer = txtNpgSqlServer.Text;
             String npgSqlPort = txtNpgSqlPort.Text;
             String npgSqlDb = txtNpgSqlDb.Text;
-            String npgSqlTable = txtNpgSqlTable.Text;
+            String npgSqlTableName = txtNpgSqlTable.Text;
             String npgSqlUserId = txtNpgSqlUserId.Text;
             String npgSqlPassword = txtNpgSqlPassword.Text;
 
@@ -149,21 +199,7 @@ namespace CopyTableFromPgSqlToMsSql
             var connectionString =
                 getNpgsqlConnectionString(npgSqlServer, npgSqlPort, npgSqlDb, npgSqlUserId, npgSqlPassword);
 
-            using (NpgsqlConnection connection = new NpgsqlConnection(connectionString))
-            using (NpgsqlCommand command = new NpgsqlCommand())
-            {
-                connection.Open();
-                command.CommandText = $@"SELECT column_name,data_type 
-                                         FROM INFORMATION_SCHEMA.COLUMNS 
-                                         WHERE TABLE_NAME = '{npgSqlTable}'";
-                command.Connection = connection;
-
-                NpgsqlDataAdapter dataAdapter = new NpgsqlDataAdapter(command);
-
-                DataTable dt = new DataTable();
-                dataAdapter.Fill(dt);
-                dataGridView.DataSource = dt;
-            }
+            getTableInformations(connectionString, npgSqlTableName);
 
             String sqlConnectionString =
                 getSqlConnectionString($@"{msSqlServer}", $@"{msSqlDb}", $@"{msSqlId}");
@@ -173,10 +209,9 @@ namespace CopyTableFromPgSqlToMsSql
 
             createSqlTable(sqlConnectionString, sqlQuery);
 
-            String insertIntoSqlQuery =
-                getInsertIntoTableSqlQuery(connectionString, npgSqlTable, msSqlTable);
+            insertIntoSqlTable(connectionString, sqlConnectionString, npgSqlTableName, msSqlTable);
 
-            copyAllData(sqlConnectionString, insertIntoSqlQuery);
+
 
             //(dataGridView.Rows.Count.ToString()); //count of column
             //(dataGridView.Rows[0].Cells[0].Value.ToString()); //Name of column
