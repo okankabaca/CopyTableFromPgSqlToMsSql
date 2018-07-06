@@ -143,7 +143,8 @@ namespace CopyTableFromPgSqlToMsSql
             }
 
         }
-        
+
+
 
         public String getCreateTablePgSqlQuery(DataGridView dataGridView, String targetTable)
         {
@@ -224,7 +225,7 @@ namespace CopyTableFromPgSqlToMsSql
                         commandSqlInsertQuery.Append("); ");
                     }
 
-                    copyAllData(sqlConnectionString, commandSqlInsertQuery.ToString());
+                    copyAllDataToMsSql(sqlConnectionString, commandSqlInsertQuery.ToString());
 
                     offSetNumber += 100;                                 //Query for next 100 data
                     command.CommandText = "Select *" +
@@ -244,9 +245,77 @@ namespace CopyTableFromPgSqlToMsSql
                            " saniye işlem zamanı");
         }
 
+        public void insertIntoPgSqlTable(String sqlConnectionString, String npgSqlConnectionString, String msSqlTable, String pgSqlTableName)
+        {
+            Stopwatch timer = new Stopwatch();
+            timer.Start();
+
+            int columnNumber = (dataGridView.Rows.Count) - 1;
+
+            using (SqlConnection connection = new SqlConnection(sqlConnectionString))
+            using (SqlCommand command = new SqlCommand())
+            {
+                uint offSetNumber = 0;
+                connection.Open();
+                command.Connection = connection;
+
+                command.CommandText = "Select *" +
+                                       $"From \"{msSqlTable}\" " +
+                                       $"Order By {dataGridView.Rows[0].Cells[0].Value.ToString()} " +
+                                       $"OFFSET {offSetNumber} ROWS " +
+                                       $"Fetch Next 100 ROWS ONLY";
+
+                SqlDataReader dataReader = command.ExecuteReader();
+
+                while (dataReader.HasRows)
+                {
+                    StringBuilder commandPgSqlInsertQuery = new StringBuilder();
+
+                    while (dataReader.Read())
+                    {
+                        commandPgSqlInsertQuery.Append($"INSERT INTO \"{pgSqlTableName.ToLower()}\" " +
+                                                       $"VALUES (");
+                        commandPgSqlInsertQuery.Append(dataReader[0]);
+
+                        if (columnNumber > 1)
+                        {
+                            for (int i = 1; i < columnNumber; i++)
+                            {
+                                commandPgSqlInsertQuery.Append(",'" + dataReader[i] + "'");
+                            }
+
+                        }
+
+                        commandPgSqlInsertQuery.Append("); ");
+                    }
+
+                    MessageBox.Show(commandPgSqlInsertQuery.ToString());
+                    copyAllDataToPgSql(npgSqlConnectionString, commandPgSqlInsertQuery.ToString());
+
+                    offSetNumber += 100;                                 //Query for next 100 data
+                    command.CommandText = "Select *" +
+                                       $"From \"{msSqlTable}\" " +
+                                       $"Order By {dataGridView.Rows[0].Cells[0].Value.ToString()} " +
+                                       $"OFFSET {offSetNumber} ROWS " +
+                                       $"Fetch Next 100 ROWS ONLY";
+
+                    dataReader.Close();
+                    dataReader = command.ExecuteReader();
+                }
+
+                dataReader.Close();
+                
+            }
+
+            timer.Stop();
+            lblProcessTime.Text = ("Kopyalama başarılı.\n" +
+                           timer.Elapsed.TotalSeconds +
+                           " saniye işlem zamanı");
+        }
 
 
-        public void copyAllData(String sqlConnectionString, String insertIntoSqlQuery)
+
+        public void copyAllDataToMsSql(String sqlConnectionString, String insertIntoSqlQuery)
         {
             using (SqlConnection connection = new SqlConnection(sqlConnectionString))
             using (SqlCommand command = new SqlCommand())
@@ -257,6 +326,19 @@ namespace CopyTableFromPgSqlToMsSql
                 command.ExecuteNonQuery();
             }
         }
+
+        public void copyAllDataToPgSql(String pgSqlConnectionString, String insertIntoPgSqlQuery)
+        {
+            using (NpgsqlConnection connection = new NpgsqlConnection(pgSqlConnectionString))
+            using (NpgsqlCommand command = new NpgsqlCommand())
+            {
+                connection.Open();
+                command.Connection = connection;
+                command.CommandText = insertIntoPgSqlQuery;
+                command.ExecuteNonQuery();
+            }
+        }
+
 
 
         private void btnBackup_Click(object sender, EventArgs e)
@@ -318,6 +400,8 @@ namespace CopyTableFromPgSqlToMsSql
 
                 createPgSqlTable(pgSqlConnectionString, pgSqlCreateTableQuery);
 
+                insertIntoPgSqlTable(sqlConnectionString, pgSqlConnectionString, sourceMsSqlTable, destinationNpgSqlTableName);
+
             }
 
             //(dataGridView.Rows.Count.ToString()); //count of column
@@ -353,5 +437,8 @@ namespace CopyTableFromPgSqlToMsSql
                 groupDestinationMsSql.Visible = false;
             }
         }
+
+
     }
 }
+
