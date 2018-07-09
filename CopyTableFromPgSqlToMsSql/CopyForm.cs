@@ -316,8 +316,14 @@ namespace CopyTableFromPgSqlToMsSql
 
                     }
 
+                    Stopwatch timerFetchWritingTime = new Stopwatch();
+                    timerFetchWritingTime.Start();
+
                     //MessageBox.Show(commandSqlInsertQuery.ToString());
                     copyAllDataToMsSql(sqlConnectionString, commandSqlInsertQuery.ToString());
+
+                    timerFetchWritingTime.Stop();
+                    lblFetchWritingTime.Text = "Yazma sn:"+timerFetchWritingTime.Elapsed.TotalSeconds.ToString();
 
                     offSetNumber += 100;                                 //Query for next 100 data
                     command.CommandText = "Select *" +
@@ -325,7 +331,14 @@ namespace CopyTableFromPgSqlToMsSql
                                            $"LIMIT 100 OFFSET {offSetNumber}";
 
                     dataReader.Close();
+
+                    Stopwatch timerFetchReadingSeconds = new Stopwatch();  // 
+                    timerFetchReadingSeconds.Start();
+
                     dataReader = command.ExecuteReader();
+
+                    timerFetchReadingSeconds.Stop();
+                    lblFetchReadingTime.Text = "Okuma sn:"+timerFetchReadingSeconds.Elapsed.TotalSeconds.ToString();
                 }
 
                 dataReader.Close();
@@ -339,14 +352,15 @@ namespace CopyTableFromPgSqlToMsSql
 
         public void insertIntoPgSqlTable(String sqlConnectionString, String npgSqlConnectionString, String msSqlTable, String pgSqlTableName)
         {
-            Stopwatch timer = new Stopwatch();
-            timer.Start();
+            Stopwatch timerTotalSeconds = new Stopwatch();
+            timerTotalSeconds.Start();
 
             int columnNumber = (dataGridView.Rows.Count) - 1;
 
             using (SqlConnection connection = new SqlConnection(sqlConnectionString))
             using (SqlCommand command = new SqlCommand())
             {
+
                 uint offSetNumber = 0;
                 connection.Open();
                 command.Connection = connection;
@@ -398,8 +412,15 @@ namespace CopyTableFromPgSqlToMsSql
                         commandPgSqlInsertQuery.Append("); ");
                     }
 
+                    Stopwatch timerFetchWritingTime = new Stopwatch();
+                    timerFetchWritingTime.Start();
+
                     //MessageBox.Show(commandPgSqlInsertQuery.ToString());
                     copyAllDataToPgSql(npgSqlConnectionString, commandPgSqlInsertQuery.ToString());
+
+                    timerFetchWritingTime.Stop();
+                    lblFetchWritingTime.Text = "Yazma sn:"+timerFetchWritingTime.Elapsed.TotalSeconds.ToString();
+
 
                     offSetNumber += 100;                                 //Query for next 100 data
                     command.CommandText = "Select *" +
@@ -409,16 +430,24 @@ namespace CopyTableFromPgSqlToMsSql
                                        $"Fetch Next 100 ROWS ONLY";
 
                     dataReader.Close();
+
+                    Stopwatch timerFetchReadingSeconds = new Stopwatch();  // 
+                    timerFetchReadingSeconds.Start();
+
                     dataReader = command.ExecuteReader();
+
+                    timerFetchReadingSeconds.Stop();
+                    lblFetchReadingTime.Text = "Okuma sn:" + timerFetchReadingSeconds.Elapsed.TotalSeconds.ToString(); //
+
                 }
 
                 dataReader.Close();
 
             }
 
-            timer.Stop();
+            timerTotalSeconds.Stop();
             lblProcessTime.Text = ("Kopyalama başarılı.\n" +
-                           timer.Elapsed.TotalSeconds +
+                           timerTotalSeconds.Elapsed.TotalSeconds +
                            " saniye işlem zamanı");
         }
 

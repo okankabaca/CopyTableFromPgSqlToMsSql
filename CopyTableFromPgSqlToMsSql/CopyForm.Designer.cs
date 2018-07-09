@@ -78,6 +78,8 @@
             this.label19 = new System.Windows.Forms.Label();
             this.txtSourceMsSqlServer = new System.Windows.Forms.TextBox();
             this.label20 = new System.Windows.Forms.Label();
+            this.lblFetchReadingTime = new System.Windows.Forms.Label();
+            this.lblFetchWritingTime = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.groupSourcePgSql.SuspendLayout();
@@ -564,11 +566,31 @@
             this.label20.TabIndex = 14;
             this.label20.Text = "MsSQL Server";
             // 
+            // lblFetchReadingTime
+            // 
+            this.lblFetchReadingTime.AutoSize = true;
+            this.lblFetchReadingTime.Location = new System.Drawing.Point(478, 213);
+            this.lblFetchReadingTime.Name = "lblFetchReadingTime";
+            this.lblFetchReadingTime.Size = new System.Drawing.Size(72, 13);
+            this.lblFetchReadingTime.TabIndex = 29;
+            this.lblFetchReadingTime.Text = "Parça Okuma";
+            // 
+            // lblFetchWritingTime
+            // 
+            this.lblFetchWritingTime.AutoSize = true;
+            this.lblFetchWritingTime.Location = new System.Drawing.Point(478, 240);
+            this.lblFetchWritingTime.Name = "lblFetchWritingTime";
+            this.lblFetchWritingTime.Size = new System.Drawing.Size(70, 13);
+            this.lblFetchWritingTime.TabIndex = 30;
+            this.lblFetchWritingTime.Text = "Parça Yazma";
+            // 
             // CopyForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(590, 364);
+            this.Controls.Add(this.lblFetchWritingTime);
+            this.Controls.Add(this.lblFetchReadingTime);
             this.Controls.Add(this.groupSourcePgSql);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.lblProcessTime);
@@ -648,6 +670,8 @@
         private System.Windows.Forms.Label label19;
         private System.Windows.Forms.TextBox txtSourceMsSqlServer;
         private System.Windows.Forms.Label label20;
+        private System.Windows.Forms.Label lblFetchReadingTime;
+        private System.Windows.Forms.Label lblFetchWritingTime;
     }
 }
 
