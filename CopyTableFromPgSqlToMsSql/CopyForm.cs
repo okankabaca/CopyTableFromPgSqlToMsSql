@@ -97,6 +97,66 @@ namespace CopyTableFromPgSqlToMsSql
         }
 
 
+        public String convertValueTypeToPgSql(String msSqlValueType)
+        {
+            String pgSqlValueType = "";
+
+            if (msSqlValueType.IndexOf("int") >= 0)
+                pgSqlValueType = "integer";
+
+            else if (msSqlValueType.IndexOf("float") >= 0)
+                pgSqlValueType = "double precision";
+
+            else if (msSqlValueType.IndexOf("decimal") >= 0)
+                pgSqlValueType = "double precision";
+
+            else if (msSqlValueType.IndexOf("bit") >= 0)
+                pgSqlValueType = "boolean";
+
+            else if (msSqlValueType.IndexOf("datetime") >= 0)
+                pgSqlValueType = "timestamp";
+
+            else if (msSqlValueType.IndexOf("date") >= 0)
+                pgSqlValueType = "date";
+
+            else if (msSqlValueType.IndexOf("time") >= 0)
+                pgSqlValueType = "time";
+
+            else pgSqlValueType = "text";
+
+            MessageBox.Show(msSqlValueType + " to pg >>>> " + pgSqlValueType);
+            return pgSqlValueType;
+        }
+
+        public String convertValueTypeToMsSql(String psSqlValueType)
+        {
+            String msSqlValueType = "";
+
+            if (psSqlValueType.IndexOf("int") >= 0)
+                msSqlValueType = "integer";
+
+            else if (psSqlValueType.IndexOf("double precision") >= 0)
+                msSqlValueType = "double precision";
+
+            else if (psSqlValueType.IndexOf("boolean") >= 0)
+                msSqlValueType = "bit";
+
+            else if (psSqlValueType.IndexOf("timestamp") >= 0)
+                msSqlValueType = "datetime";
+
+            else if (psSqlValueType.IndexOf("date") >= 0)
+                msSqlValueType = "date";
+
+            else if (psSqlValueType.IndexOf("time") >= 0)
+                msSqlValueType = "time";
+
+            else msSqlValueType = "text";
+
+            MessageBox.Show(psSqlValueType + " to mssql >>>> " + msSqlValueType);
+            return msSqlValueType;
+        }
+
+
         public String getCreateTablePgSqlQuery(DataGridView dataGridView, String targetTable)
         {
             int columnNumber = Int32.Parse(dataGridView.Rows.Count.ToString());
@@ -106,12 +166,18 @@ namespace CopyTableFromPgSqlToMsSql
             for (int i = 1; i < columnNumber; i++)
             {
                 pgSqlQuery += dataGridView.Rows[(i - 1)].Cells[0].Value.ToString();
-                pgSqlQuery += " " + dataGridView.Rows[(i - 1)].Cells[1].Value.ToString() + " ,";
+
+                String msSqlValueType = dataGridView.Rows[(i - 1)].Cells[1].Value.ToString();
+                String pgSqlValueType =
+                    convertValueTypeToPgSql(msSqlValueType);
+
+                pgSqlQuery += " " + pgSqlValueType + " ,";
+
             }
 
             pgSqlQuery = pgSqlQuery.Substring(0, pgSqlQuery.Length - 1);
             pgSqlQuery += ")";
-            //MessageBox.Show(pgSqlQuery);
+            MessageBox.Show(pgSqlQuery);
             return pgSqlQuery;
         }
 
@@ -123,12 +189,17 @@ namespace CopyTableFromPgSqlToMsSql
 
             for (int i = 1; i < columnNumber; i++)
             {
-                sqlQuery += dataGridView.Rows[(i - 1)].Cells[0].Value.ToString();
-                sqlQuery += " " + dataGridView.Rows[(i - 1)].Cells[1].Value.ToString() + " ,";
+                sqlQuery += dataGridView.Rows[(i - 1)].Cells[0].Value.ToString();  //Alan adı
+
+                String pgSqlValueType = dataGridView.Rows[(i - 1)].Cells[1].Value.ToString();
+                String msSqlValueType =
+                    convertValueTypeToMsSql(pgSqlValueType);
+
+                sqlQuery += " " + msSqlValueType + " ,"; //Alan tipi
             }
 
             sqlQuery += ")";
-            //MessageBox.Show(sqlQuery);
+            MessageBox.Show(sqlQuery);
             return sqlQuery;
         }
 
@@ -207,29 +278,28 @@ namespace CopyTableFromPgSqlToMsSql
                     {
                         commandSqlInsertQuery.Append($"INSERT INTO {msSqlTable} " +
                                                      $"VALUES (");
-                        //commandSqlInsertQuery.Append(dataReader[0]);
 
                         if (columnNumber > 1)
                         {
-                            if (dataGridView.Rows[0].Cells[1].Value.ToString().Equals("integer"))
-                            {
-                                commandSqlInsertQuery.Append(dataReader[0]);
-                            }
-                            else
-                            {
-                                commandSqlInsertQuery.Append(",'" + dataReader[0] + "'");
-                            }
+                            //get first data for no exception because of ','
+
+                            String dataType = dataGridView.Rows[0].Cells[1].Value.ToString();
+                            String data = dataReader[0].ToString();
+
+                            data =
+                                getInsertIntoQueryData(data, dataType);
+
+                            commandSqlInsertQuery.Append(data);
 
                             for (int i = 1; i < columnNumber; i++)
                             {
-                                if (dataGridView.Rows[i].Cells[1].Value.ToString().Equals("integer"))
-                                {
-                                    commandSqlInsertQuery.Append("," + dataReader[0]);
-                                }
-                                else
-                                {
-                                    commandSqlInsertQuery.Append(",'" + dataReader[i] + "'");
-                                }
+                                dataType = dataGridView.Rows[i].Cells[1].Value.ToString();
+                                data = dataReader[i].ToString();
+
+                                data =
+                                    getInsertIntoQueryData(data, dataType);
+
+                                commandSqlInsertQuery.Append("," + data);
 
                             }
 
@@ -239,7 +309,7 @@ namespace CopyTableFromPgSqlToMsSql
 
                     }
 
-                    MessageBox.Show(commandSqlInsertQuery.ToString());
+                    //MessageBox.Show(commandSqlInsertQuery.ToString());
                     copyAllDataToMsSql(sqlConnectionString, commandSqlInsertQuery.ToString());
 
                     offSetNumber += 100;                                 //Query for next 100 data
@@ -292,29 +362,27 @@ namespace CopyTableFromPgSqlToMsSql
                                                        $"VALUES (");
 
                         //get first data for no exception because of ','
-                        //commandPgSqlInsertQuery.Append(dataReader[0]);
 
-                        if (dataGridView.Rows[0].Cells[1].Value.ToString().Equals("int"))
-                        {
-                            commandPgSqlInsertQuery.Append(dataReader[0]);
-                        }
-                        else
-                        {
-                            commandPgSqlInsertQuery.Append("'" + dataReader[0] + "");
-                        }
+                        String dataType = dataGridView.Rows[0].Cells[1].Value.ToString();
+                        String data = dataReader[0].ToString();
+
+                        data =
+                            getInsertIntoQueryData(data, dataType);
+
+                        commandPgSqlInsertQuery.Append(data);
+
 
                         if (columnNumber > 1)
                         {
                             for (int i = 1; i < columnNumber; i++)
                             {
-                                if (dataGridView.Rows[i].Cells[1].Value.ToString().Equals("int"))
-                                {
-                                    commandPgSqlInsertQuery.Append("," + dataReader[i]);
-                                }
-                                else
-                                {
-                                    commandPgSqlInsertQuery.Append(",'" + dataReader[i] + "'");
-                                }
+                                dataType = dataGridView.Rows[i].Cells[1].Value.ToString();
+                                data = dataReader[i].ToString();
+
+                                data =
+                                    getInsertIntoQueryData(data, dataType);
+
+                                commandPgSqlInsertQuery.Append("," + data);
 
                             }
 
@@ -323,7 +391,7 @@ namespace CopyTableFromPgSqlToMsSql
                         commandPgSqlInsertQuery.Append("); ");
                     }
 
-                    MessageBox.Show(commandPgSqlInsertQuery.ToString());
+                    //MessageBox.Show(commandPgSqlInsertQuery.ToString());
                     copyAllDataToPgSql(npgSqlConnectionString, commandPgSqlInsertQuery.ToString());
 
                     offSetNumber += 100;                                 //Query for next 100 data
@@ -347,6 +415,37 @@ namespace CopyTableFromPgSqlToMsSql
                            " saniye işlem zamanı");
         }
 
+        public String getInsertIntoQueryData(String data, String dataType)
+        {
+            if (dataType.IndexOf("int") >= 0)
+                return data;
+
+            else if (dataType.IndexOf("boolean") >= 0)
+            {
+                if (data.Equals("true")) return "1";
+                else return "0";
+            }
+
+            else if (dataType.IndexOf("bit") >= 0)
+            {
+                if (data.Equals("1")) return "true";
+                else return "false";
+            }
+
+            else if (dataType.IndexOf("datetime")>=0)
+                return ("'" + data + "'");
+
+            else if (dataType.IndexOf("date") >= 0)
+                return ("'" + data + "'");
+
+            else if (dataType.IndexOf("time") >= 0)
+                return ("'" + data + "'");
+
+            else
+                return ("'" + data + "'");
+
+
+        }
 
         public void copyAllDataToMsSql(String sqlConnectionString, String insertIntoSqlQuery)
         {

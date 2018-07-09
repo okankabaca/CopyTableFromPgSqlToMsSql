@@ -195,7 +195,7 @@
             this.txtSourcePgSqlTable.Name = "txtSourcePgSqlTable";
             this.txtSourcePgSqlTable.Size = new System.Drawing.Size(118, 20);
             this.txtSourcePgSqlTable.TabIndex = 13;
-            this.txtSourcePgSqlTable.Text = "tableSource";
+            this.txtSourcePgSqlTable.Text = "tablesource";
             // 
             // label6
             // 
@@ -277,7 +277,7 @@
             // lblProcessTime
             // 
             this.lblProcessTime.AutoSize = true;
-            this.lblProcessTime.Location = new System.Drawing.Point(314, 331);
+            this.lblProcessTime.Location = new System.Drawing.Point(314, 315);
             this.lblProcessTime.Name = "lblProcessTime";
             this.lblProcessTime.Size = new System.Drawing.Size(13, 13);
             this.lblProcessTime.TabIndex = 22;
@@ -569,7 +569,6 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(590, 364);
-            this.Controls.Add(this.groupSourceMsSql);
             this.Controls.Add(this.groupSourcePgSql);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.lblProcessTime);
@@ -577,6 +576,7 @@
             this.Controls.Add(this.btnBackup);
             this.Controls.Add(this.groupDestinationPgSql);
             this.Controls.Add(this.groupDestinationMsSql);
+            this.Controls.Add(this.groupSourceMsSql);
             this.Name = "CopyForm";
             this.Text = "CopyForm";
             this.Load += new System.EventHandler(this.CopyForm_Load);
