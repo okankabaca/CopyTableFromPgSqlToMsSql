@@ -124,15 +124,19 @@ namespace CopyTableFromPgSqlToMsSql
 
             else pgSqlValueType = "text";
 
-            MessageBox.Show(msSqlValueType + " to pg >>>> " + pgSqlValueType);
+            //MessageBox.Show(msSqlValueType + " to pg >>>> " + pgSqlValueType);
             return pgSqlValueType;
         }
 
         public String convertValueTypeToMsSql(String psSqlValueType)
         {
             String msSqlValueType = "";
+            if (psSqlValueType.Equals("bigint"))
+            {
+                msSqlValueType = "bigint";
+            }
 
-            if (psSqlValueType.IndexOf("int") >= 0)
+            else if (psSqlValueType.IndexOf("int") >= 0)
                 msSqlValueType = "integer";
 
             else if (psSqlValueType.IndexOf("double precision") >= 0)
@@ -150,9 +154,12 @@ namespace CopyTableFromPgSqlToMsSql
             else if (psSqlValueType.IndexOf("time") >= 0)
                 msSqlValueType = "time";
 
+            else if (psSqlValueType.IndexOf("character varying") >= 0)
+                msSqlValueType = "text";
+
             else msSqlValueType = "text";
 
-            MessageBox.Show(psSqlValueType + " to mssql >>>> " + msSqlValueType);
+            //MessageBox.Show(psSqlValueType + " to mssql >>>> " + msSqlValueType);
             return msSqlValueType;
         }
 
@@ -177,7 +184,7 @@ namespace CopyTableFromPgSqlToMsSql
 
             pgSqlQuery = pgSqlQuery.Substring(0, pgSqlQuery.Length - 1);
             pgSqlQuery += ")";
-            MessageBox.Show(pgSqlQuery);
+            //MessageBox.Show(pgSqlQuery);
             return pgSqlQuery;
         }
 
@@ -199,7 +206,7 @@ namespace CopyTableFromPgSqlToMsSql
             }
 
             sqlQuery += ")";
-            MessageBox.Show(sqlQuery);
+            //MessageBox.Show(sqlQuery);
             return sqlQuery;
         }
 
@@ -417,6 +424,7 @@ namespace CopyTableFromPgSqlToMsSql
 
         public String getInsertIntoQueryData(String data, String dataType)
         {
+            data = data.Replace("'", "''");
             if (dataType.IndexOf("int") >= 0)
                 return data;
 
@@ -432,7 +440,7 @@ namespace CopyTableFromPgSqlToMsSql
                 else return "false";
             }
 
-            else if (dataType.IndexOf("datetime")>=0)
+            else if (dataType.IndexOf("datetime") >= 0)
                 return ("'" + data + "'");
 
             else if (dataType.IndexOf("date") >= 0)
@@ -441,11 +449,15 @@ namespace CopyTableFromPgSqlToMsSql
             else if (dataType.IndexOf("time") >= 0)
                 return ("'" + data + "'");
 
+            else if (dataType.IndexOf("character varying") >= 0)
+                return ("'" + data + "'");
+
             else
                 return ("'" + data + "'");
 
 
         }
+
 
         public void copyAllDataToMsSql(String sqlConnectionString, String insertIntoSqlQuery)
         {
