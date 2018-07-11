@@ -47,12 +47,15 @@ namespace CopyTableFromPgSqlToMsSql
             return npgConnectionString;
         }
 
-        public String getSqlConnectionString(String sqlServer, String sqlDb, String sqluserID)
+        public String getSqlConnectionString(String sqlServer, String sqlDb, String sqluserID, String sqlPassword)
         {
             var sqlConnectionString = $@"SERVER={sqlServer};
                                    Database={sqlDb};
                                    uId={sqluserID};
-                                   Integrated Security=True";
+                                   Password={sqlPassword}";
+
+            if (sqlServer.Equals("GEBZEHAVUZ17"))
+                sqlConnectionString += ";Integrated Security = true";
 
             return sqlConnectionString;
         }
@@ -216,7 +219,16 @@ namespace CopyTableFromPgSqlToMsSql
             using (SqlConnection connection = new SqlConnection(sqlConnectionString))
             using (SqlCommand command = new SqlCommand())
             {
-                connection.Open();
+                try
+                {
+                    connection.Open();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                    MessageBox.Show(sqlConnectionString);
+                }
+
                 command.Connection = connection;
                 command.CommandText = sqlQuery;
 
@@ -238,7 +250,16 @@ namespace CopyTableFromPgSqlToMsSql
             using (NpgsqlConnection connection = new NpgsqlConnection(PgSqlConnectionString))
             using (NpgsqlCommand command = new NpgsqlCommand())
             {
-                connection.Open();
+                try
+                {
+                    connection.Open();
+
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+
+                }
                 command.Connection = connection;
                 command.CommandText = pgSqlQuery;
 
@@ -323,7 +344,7 @@ namespace CopyTableFromPgSqlToMsSql
                     copyAllDataToMsSql(sqlConnectionString, commandSqlInsertQuery.ToString());
 
                     timerFetchWritingTime.Stop();
-                    lblFetchWritingTime.Text = "Yazma sn:"+timerFetchWritingTime.Elapsed.TotalSeconds.ToString();
+                    lblFetchWritingTime.Text = "Yazma sn:" + timerFetchWritingTime.Elapsed.TotalSeconds.ToString();
 
                     offSetNumber += 100;                                 //Query for next 100 data
                     command.CommandText = "Select *" +
@@ -335,10 +356,12 @@ namespace CopyTableFromPgSqlToMsSql
                     Stopwatch timerFetchReadingSeconds = new Stopwatch();  // 
                     timerFetchReadingSeconds.Start();
 
+                    Application.DoEvents();
+
                     dataReader = command.ExecuteReader();
 
                     timerFetchReadingSeconds.Stop();
-                    lblFetchReadingTime.Text = "Okuma sn:"+timerFetchReadingSeconds.Elapsed.TotalSeconds.ToString();
+                    lblFetchReadingTime.Text = "Okuma sn:" + timerFetchReadingSeconds.Elapsed.TotalSeconds.ToString();
                 }
 
                 dataReader.Close();
@@ -370,7 +393,6 @@ namespace CopyTableFromPgSqlToMsSql
                                        $"Order By {dataGridView.Rows[0].Cells[0].Value.ToString()} " +
                                        $"OFFSET {offSetNumber} ROWS " +
                                        $"Fetch Next 100 ROWS ONLY";
-
                 SqlDataReader dataReader = command.ExecuteReader();
 
                 while (dataReader.HasRows)
@@ -419,7 +441,7 @@ namespace CopyTableFromPgSqlToMsSql
                     copyAllDataToPgSql(npgSqlConnectionString, commandPgSqlInsertQuery.ToString());
 
                     timerFetchWritingTime.Stop();
-                    lblFetchWritingTime.Text = "Yazma sn:"+timerFetchWritingTime.Elapsed.TotalSeconds.ToString();
+                    lblFetchWritingTime.Text = "Yazma sn:" + timerFetchWritingTime.Elapsed.TotalSeconds.ToString();
 
 
                     offSetNumber += 100;                                 //Query for next 100 data
@@ -454,8 +476,21 @@ namespace CopyTableFromPgSqlToMsSql
         public String getInsertIntoQueryData(String data, String dataType)
         {
             data = data.Replace("'", "''");
-            if (dataType.IndexOf("int") >= 0)
-                return data;
+            //MessageBox.Show(dataType.ToString() +"data tipinin değeri =>"+data.ToString()+".");
+
+            if (dataType.IndexOf("bigint") >= 0)
+
+                if (data.Length == 0)
+                    return "null";
+                else
+                    return data;
+
+            else if (dataType.IndexOf("int") >= 0)
+
+                if (data.Length == 0)
+                    return "null";
+                else
+                    return data;
 
             else if (dataType.IndexOf("boolean") >= 0)
             {
@@ -470,19 +505,34 @@ namespace CopyTableFromPgSqlToMsSql
             }
 
             else if (dataType.IndexOf("datetime") >= 0)
-                return ("'" + data + "'");
+
+                if (data.Length == 0)
+                    return "null";
+                else return ("'" + data + "'");
 
             else if (dataType.IndexOf("date") >= 0)
-                return ("'" + data + "'");
+
+                if (data.Length == 0)
+                    return "null";
+                else return ("'" + data + "'");
 
             else if (dataType.IndexOf("time") >= 0)
-                return ("'" + data + "'");
+
+                if (data.Length == 0)
+                    return "null";
+                else return ("'" + data + "'");
 
             else if (dataType.IndexOf("character varying") >= 0)
-                return ("'" + data + "'");
+
+                if (data.Length == 0)
+                    return "null";
+                else return ("'" + data + "'");
 
             else
-                return ("'" + data + "'");
+
+                if (data.Length == 0)
+                return "null";
+            else return ("'" + data + "'");
 
 
         }
@@ -496,7 +546,15 @@ namespace CopyTableFromPgSqlToMsSql
                 connection.Open();
                 command.Connection = connection;
                 command.CommandText = insertIntoSqlQuery;
-                command.ExecuteNonQuery();
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+
             }
         }
 
@@ -508,7 +566,14 @@ namespace CopyTableFromPgSqlToMsSql
                 connection.Open();
                 command.Connection = connection;
                 command.CommandText = insertIntoPgSqlQuery;
-                command.ExecuteNonQuery();
+                try
+                {
+                    command.ExecuteNonQuery();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
             }
         }
 
@@ -528,12 +593,13 @@ namespace CopyTableFromPgSqlToMsSql
                 String msSqlDb = txtDestinationMsSqlDb.Text;
                 String msSqlId = txtDestinationMsSqlUserId.Text;
                 String msSqlTable = txtDestinationMsSqlTable.Text;
+                String msSqlPassword = txtDestinationMsSqlPassword.Text;
 
                 var npgConnectionString =
                     getNpgsqlConnectionString(npgSqlServer, npgSqlPort, npgSqlDb, npgSqlUserId, npgSqlPassword);
 
                 var sqlConnectionString =
-                    getSqlConnectionString(msSqlServer, msSqlDb, msSqlId);
+                    getSqlConnectionString(msSqlServer, msSqlDb, msSqlId, msSqlPassword);
 
                 getPgTableInformations(npgConnectionString, npgSqlTableName);
 
@@ -551,6 +617,8 @@ namespace CopyTableFromPgSqlToMsSql
                 String sourceMsSqlDb = txtSourceMsSqlDb.Text;
                 String sourceMsSqlId = txtSourceMsSqlUserId.Text;
                 String sourceMsSqlTable = txtSourceMsSqlTable.Text;
+                String sourceMsSqlPassword = txtSourceMsSqlPassword.Text;
+
 
                 String destinationNpgSqlServer = txtDestinationPgSqlServer.Text;
                 String destinationNpgSqlPort = txtDestinationPgSqlPort.Text;
@@ -563,7 +631,7 @@ namespace CopyTableFromPgSqlToMsSql
                     getNpgsqlConnectionString(destinationNpgSqlServer, destinationNpgSqlPort, destinationNpgSqlDb, destinationNpgSqlUserId, destinationNpgSqlPassword);
 
                 var sqlConnectionString =
-                    getSqlConnectionString(sourceMsSqlServer, sourceMsSqlDb, sourceMsSqlId);
+                    getSqlConnectionString(sourceMsSqlServer, sourceMsSqlDb, sourceMsSqlId, sourceMsSqlPassword);
 
                 getSqlTableInformations(sqlConnectionString, sourceMsSqlTable);
 

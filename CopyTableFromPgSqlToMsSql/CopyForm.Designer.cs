@@ -80,6 +80,10 @@
             this.label20 = new System.Windows.Forms.Label();
             this.lblFetchReadingTime = new System.Windows.Forms.Label();
             this.lblFetchWritingTime = new System.Windows.Forms.Label();
+            this.txtSourceMsSqlPassword = new System.Windows.Forms.TextBox();
+            this.label21 = new System.Windows.Forms.Label();
+            this.txtDestinationMsSqlPassword = new System.Windows.Forms.TextBox();
+            this.label22 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).BeginInit();
             this.groupBox1.SuspendLayout();
             this.groupSourcePgSql.SuspendLayout();
@@ -178,6 +182,7 @@
             // 
             this.txtSourcePgSqlPassword.Location = new System.Drawing.Point(105, 144);
             this.txtSourcePgSqlPassword.Name = "txtSourcePgSqlPassword";
+            this.txtSourcePgSqlPassword.PasswordChar = '*';
             this.txtSourcePgSqlPassword.Size = new System.Drawing.Size(118, 20);
             this.txtSourcePgSqlPassword.TabIndex = 11;
             this.txtSourcePgSqlPassword.Text = "Logo1234";
@@ -343,6 +348,8 @@
             // 
             // groupDestinationMsSql
             // 
+            this.groupDestinationMsSql.Controls.Add(this.txtDestinationMsSqlPassword);
+            this.groupDestinationMsSql.Controls.Add(this.label22);
             this.groupDestinationMsSql.Controls.Add(this.txtDestinationMsSqlTable);
             this.groupDestinationMsSql.Controls.Add(this.label10);
             this.groupDestinationMsSql.Controls.Add(this.txtDestinationMsSqlUserId);
@@ -400,6 +407,7 @@
             // 
             this.txtDestinationPgSqlPassword.Location = new System.Drawing.Point(105, 144);
             this.txtDestinationPgSqlPassword.Name = "txtDestinationPgSqlPassword";
+            this.txtDestinationPgSqlPassword.PasswordChar = '*';
             this.txtDestinationPgSqlPassword.Size = new System.Drawing.Size(118, 20);
             this.txtDestinationPgSqlPassword.TabIndex = 11;
             this.txtDestinationPgSqlPassword.Text = "Logo1234";
@@ -483,6 +491,8 @@
             // 
             // groupSourceMsSql
             // 
+            this.groupSourceMsSql.Controls.Add(this.txtSourceMsSqlPassword);
+            this.groupSourceMsSql.Controls.Add(this.label21);
             this.groupSourceMsSql.Controls.Add(this.txtSourceMsSqlTable);
             this.groupSourceMsSql.Controls.Add(this.label17);
             this.groupSourceMsSql.Controls.Add(this.txtSourceMsSqlUserId);
@@ -569,7 +579,7 @@
             // lblFetchReadingTime
             // 
             this.lblFetchReadingTime.AutoSize = true;
-            this.lblFetchReadingTime.Location = new System.Drawing.Point(478, 213);
+            this.lblFetchReadingTime.Location = new System.Drawing.Point(454, 213);
             this.lblFetchReadingTime.Name = "lblFetchReadingTime";
             this.lblFetchReadingTime.Size = new System.Drawing.Size(72, 13);
             this.lblFetchReadingTime.TabIndex = 29;
@@ -578,11 +588,47 @@
             // lblFetchWritingTime
             // 
             this.lblFetchWritingTime.AutoSize = true;
-            this.lblFetchWritingTime.Location = new System.Drawing.Point(478, 240);
+            this.lblFetchWritingTime.Location = new System.Drawing.Point(454, 240);
             this.lblFetchWritingTime.Name = "lblFetchWritingTime";
             this.lblFetchWritingTime.Size = new System.Drawing.Size(70, 13);
             this.lblFetchWritingTime.TabIndex = 30;
             this.lblFetchWritingTime.Text = "Parça Yazma";
+            // 
+            // txtSourceMsSqlPassword
+            // 
+            this.txtSourceMsSqlPassword.Location = new System.Drawing.Point(112, 118);
+            this.txtSourceMsSqlPassword.Name = "txtSourceMsSqlPassword";
+            this.txtSourceMsSqlPassword.PasswordChar = '*';
+            this.txtSourceMsSqlPassword.Size = new System.Drawing.Size(118, 20);
+            this.txtSourceMsSqlPassword.TabIndex = 23;
+            this.txtSourceMsSqlPassword.Text = "Logo1234";
+            // 
+            // label21
+            // 
+            this.label21.AutoSize = true;
+            this.label21.Location = new System.Drawing.Point(10, 125);
+            this.label21.Name = "label21";
+            this.label21.Size = new System.Drawing.Size(91, 13);
+            this.label21.TabIndex = 22;
+            this.label21.Text = "MsSQL Password";
+            // 
+            // txtDestinationMsSqlPassword
+            // 
+            this.txtDestinationMsSqlPassword.Location = new System.Drawing.Point(112, 118);
+            this.txtDestinationMsSqlPassword.Name = "txtDestinationMsSqlPassword";
+            this.txtDestinationMsSqlPassword.PasswordChar = '*';
+            this.txtDestinationMsSqlPassword.Size = new System.Drawing.Size(118, 20);
+            this.txtDestinationMsSqlPassword.TabIndex = 25;
+            this.txtDestinationMsSqlPassword.Text = "123123";
+            // 
+            // label22
+            // 
+            this.label22.AutoSize = true;
+            this.label22.Location = new System.Drawing.Point(10, 125);
+            this.label22.Name = "label22";
+            this.label22.Size = new System.Drawing.Size(91, 13);
+            this.label22.TabIndex = 24;
+            this.label22.Text = "MsSQL Password";
             // 
             // CopyForm
             // 
@@ -591,14 +637,14 @@
             this.ClientSize = new System.Drawing.Size(590, 364);
             this.Controls.Add(this.lblFetchWritingTime);
             this.Controls.Add(this.lblFetchReadingTime);
-            this.Controls.Add(this.groupSourcePgSql);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.lblProcessTime);
             this.Controls.Add(this.dataGridView);
             this.Controls.Add(this.btnBackup);
-            this.Controls.Add(this.groupDestinationPgSql);
-            this.Controls.Add(this.groupDestinationMsSql);
+            this.Controls.Add(this.groupSourcePgSql);
             this.Controls.Add(this.groupSourceMsSql);
+            this.Controls.Add(this.groupDestinationMsSql);
+            this.Controls.Add(this.groupDestinationPgSql);
             this.Name = "CopyForm";
             this.Text = "CopyForm";
             this.Load += new System.EventHandler(this.CopyForm_Load);
@@ -672,6 +718,10 @@
         private System.Windows.Forms.Label label20;
         private System.Windows.Forms.Label lblFetchReadingTime;
         private System.Windows.Forms.Label lblFetchWritingTime;
+        private System.Windows.Forms.TextBox txtDestinationMsSqlPassword;
+        private System.Windows.Forms.Label label22;
+        private System.Windows.Forms.TextBox txtSourceMsSqlPassword;
+        private System.Windows.Forms.Label label21;
     }
 }
 
